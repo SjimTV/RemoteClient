@@ -1,55 +1,126 @@
 package com.sjimtv.remoteclient.client;
 
+import android.content.Context;
 import android.util.Log;
-import com.sjimtv.remoteclient.showStructure.Shows;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+import com.sjimtv.remoteclient.media.Status;
 import com.sjimtv.remoteclient.utils.JsonConverter;
 
-import java.io.IOException;
-
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import org.json.JSONObject;
 
 public class RestApiCommunicator {
 
+    private static final String LOG_TAG = "API";
+
     private String ip;
     private int port;
+    private RequestQueue queue;
 
-    private final OkHttpClient httpClient;
+    private Response.ErrorListener errorListener;
 
-    public RestApiCommunicator(String ip, int port){
+
+    public RestApiCommunicator(Context context, String ip, int port){
         this.ip = ip;
         this.port = port;
-        httpClient = new OkHttpClient();
+        queue = Volley.newRequestQueue(context);
+
+        errorListener = new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+                Log.i(LOG_TAG, "Error + " + error.getMessage());
+            }
+        };
+
+        Log.i(LOG_TAG,String.format("Setup Rest API Communicator on IP %s and PORT %d", ip, port));
     }
 
-    public boolean pause() throws IOException {
-        String url ="http://" + ip + ":" + port + "/pause";
-
-        String stringResponse = sendRequestForStringResponse(url);
-        if (stringResponse.equals("playing")) return true;
-        else if (stringResponse.equals("paused")) return false;
-
-        throw new IOException("Invalid pause state returned " + stringResponse);
+    public void changeDevice(String ip){
+        this.ip = ip;
+        queue.cancelAll(this);
+        Log.i(LOG_TAG,String.format("Setup Rest API Communicator on IP %s and PORT %d", ip, port));
     }
 
-    public Shows pullShowsFromHost() throws IOException {
+
+    public void pullShowsFromHost(Response.Listener<String> callback){
         String url ="http://" + ip + ":" + port + "/pull_shows";
-        Log.i("RESTAPI", url);
-
-        String stringResponse = sendRequestForStringResponse(url);
-        return JsonConverter.convertShowsFromJson(stringResponse);
+        callGetRequest(url, callback);
     }
 
-    private String sendRequestForStringResponse(String url) throws IOException {
-        Request request = new Request.Builder()
-                .url(url)
-                .build();
-
-        Response response = httpClient.newCall(request).execute();
-        if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
-        if (response.body() == null)  throw new IOException("Empty response " + response);
-        return response.body().string();
+    public void updateStatus(Status status, Response.Listener<JSONObject> callback){
+        String url ="http://" + ip + ":" + port + "/status/update";
+        JSONObject jsonStatus = JsonConverter.convertStatusToJSONObject(status);
+        callPostRequest(url, callback, jsonStatus);
     }
+
+    public void getStatus(Response.Listener<String> callback) {
+        String url ="http://" + ip + ":" + port + "/status/get";
+        callGetRequest(url, callback);
+    }
+
+    public void adjustVolume(boolean adjustUp, Response.Listener<String> callback){
+        String url ="http://" + ip + ":" + port + "/adjustVolume?adjustUp=";
+        if (adjustUp) url += "true";
+        else url += "false";
+
+        callGetRequest(url, callback);
+    }
+
+    public void skipTime(boolean forward, Response.Listener<String> callback){
+        String url ="http://" + ip + ":" + port + "/skipTime?forward=";
+        if (forward) url += "true";
+        else url += "false";
+
+        callGetRequest(url, callback);
+    }
+
+    public void setPosition(float position, Response.Listener<String> callback){
+        String url ="http://" + ip + ":" + port + "/position?position=";
+        url += position;
+
+        callGetRequest(url, callback);
+
+    }
+
+    public void subscribePositionlistener(boolean subscribe, Response.Listener<String> callback){
+        String url ="http://" + ip + ":" + port + "/positionListener?subscribe=";
+        if (subscribe) url += "true";
+        else url += "false";
+
+        callGetRequest(url, callback);
+    }
+
+    public void shutdown(Response.Listener<String> callback){
+        String url ="http://" + ip + ":" + port + "/shutdown";
+
+        callGetRequest(url, callback);
+    }
+
+    private void callGetRequest(String url, Response.Listener<String> callback){
+        StringRequest stringRequest = new StringRequest(
+                Request.Method.GET,
+                url,
+                callback, errorListener);
+        queue.add(stringRequest);
+        Log.i(LOG_TAG, "GET - " + url);
+    }
+
+    private void callPostRequest(String url, Response.Listener<JSONObject> callback, JSONObject postObject){
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+                Request.Method.POST,
+                url,
+                postObject,
+                callback, errorListener);
+        queue.add(jsonObjectRequest);
+        Log.i(LOG_TAG, "POST - " + url);
+    }
+
 
 }

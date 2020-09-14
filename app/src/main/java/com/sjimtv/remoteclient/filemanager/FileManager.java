@@ -3,7 +3,7 @@ package com.sjimtv.remoteclient.filemanager;
 import android.content.SharedPreferences;
 import android.util.Log;
 
-import com.sjimtv.remoteclient.HomeActivity;
+import com.sjimtv.remoteclient.ui.HomeActivity;
 import com.sjimtv.remoteclient.showStructure.Shows;
 import com.sjimtv.remoteclient.utils.JsonConverter;
 
@@ -14,6 +14,7 @@ public class FileManager {
 
     public FileManager(HomeActivity homeActivity){
         sharedPreferences = homeActivity.getSharedPreferences("com.sjimtv.remoteclient", 0);
+        loadShowsFromDeviceBackup();
     }
 
     public void loadShowsFromDeviceBackup(){
@@ -24,6 +25,7 @@ public class FileManager {
 
     public void setShowsFromJSON(String jsonShows) {
         sharedPreferences.edit().putString("showsBackup", jsonShows).apply();
+        Log.i("FILEMANAGER", jsonShows);
         this.shows = JsonConverter.convertShowsFromJson(jsonShows);
     }
 

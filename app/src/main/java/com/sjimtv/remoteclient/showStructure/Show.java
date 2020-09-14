@@ -6,16 +6,26 @@ public class Show {
     private String path;
     private String name;
     private int season;
+
+    private String showImage;
+    private String imdbID;
+    private String[] mediaTypeFlags;
+
     private Episodes episodes;
 
     public Show(){
         // Empty Constructor for JSON Parsing
     }
 
-    public Show(String path, String name, int season, Episodes episodes) {
+    public Show(String path, String name, int season, String showImage,String imdbID, String[] mediaTypeFlags, Episodes episodes) {
         this.path = path;
         this.name = name;
         this.season = season;
+
+        this.showImage = showImage;
+        this.imdbID = imdbID;
+        this.mediaTypeFlags = mediaTypeFlags;
+
         this.episodes = episodes;
     }
 
@@ -49,5 +59,29 @@ public class Show {
 
     public void setSeason(int season) {
         this.season = season;
+    }
+
+    public String getImdbID() {
+        return imdbID;
+    }
+
+    public void setImdbID(String imdbID) {
+        this.imdbID = imdbID;
+    }
+
+    public void setShowImage(String showImage) {
+        this.showImage = showImage;
+    }
+
+    public String getShowImage() {
+        return showImage;
+    }
+
+    public String[] getMediaTypeFlags() {
+        return mediaTypeFlags;
+    }
+
+    public void setMediaTypeFlags(String[] mediaTypeFlags) {
+        this.mediaTypeFlags = mediaTypeFlags;
     }
 }

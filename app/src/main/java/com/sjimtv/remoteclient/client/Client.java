@@ -1,6 +1,11 @@
 package com.sjimtv.remoteclient.client;
 
+import android.app.Activity;
+import android.content.Context;
 import android.util.Log;
+
+import com.sjimtv.remoteclient.ui.PositionListener;
+import com.sjimtv.remoteclient.ui.StatusRefreshable;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -14,25 +19,35 @@ import java.net.UnknownHostException;
 
 public class Client extends Thread{
 
-    private static final String LOG_TAG = "CLIENTTAG";
+    private static final String LOG_TAG = "API";
 
-    private final String ip;
+    private String ip;
     private final int port;
     private boolean isClientRunning;
+    private boolean isClientConnected;
+
     private PrintWriter bufferOut;
     private BufferedReader bufferIn;
     private Socket clientSocket;
 
+    private StatusRefreshable statusRefreshable;
     private ClientCommunicator clientCommunicator;
 
-    public Client(String ip, int port){
+    public Client(Activity activity, String ip, int port){
         this.ip = ip;
         this.port = port;
+
+        statusRefreshable = (StatusRefreshable) activity;
+
+        PositionListener positionListener = (PositionListener) activity;
+        clientCommunicator = new ClientCommunicator(positionListener);
+
+        isClientConnected = false;
     }
 
     @Override
     public void run() {
-        Log.i(LOG_TAG, "Starting Client");
+        Log.i(LOG_TAG, "Starting Client IP: " + ip + " PORT: " + port);
         try {
             runClient();
         } catch (UnknownHostException e) {
@@ -45,20 +60,24 @@ public class Client extends Thread{
 
     }
 
+    public void changeDevice(String ip){
+        this.ip = ip;
+        close();
+    }
+
     private void runClient() throws IOException {
         isClientRunning = true;
         openSocket();
         initializeBufferCommunication();
-
-        clientCommunicator = new ClientCommunicator();
         listenForMessages();
     }
 
     private void openSocket() throws IOException {
         InetAddress serverIPAdress = InetAddress.getByName(ip);
-        Log.i(LOG_TAG, "Connecting...");
+        Log.i(LOG_TAG, "Connecting...\nIP: " + ip + " Port: " + port);
         clientSocket = new Socket(serverIPAdress, port);
         Log.i(LOG_TAG, "Connection Accepted!");
+        clientConnect(true);
     }
 
     private void initializeBufferCommunication() throws IOException {
@@ -76,6 +95,7 @@ public class Client extends Thread{
 
     private String tryReadMessage() {
         try {
+            if (bufferIn == null) close();
             String message = bufferIn.readLine();
             if (isServerDead(message)) close();
             return message;
@@ -91,7 +111,6 @@ public class Client extends Thread{
     }
 
     private void messageReceived(String message) {
-        Log.i(LOG_TAG, message);
         clientCommunicator.getMessage(message);
     }
 
@@ -109,8 +128,10 @@ public class Client extends Thread{
 
     public void close() {
         Log.i(LOG_TAG, "Disconnecting Client");
+        clientConnect(false);
         isClientRunning = false;
         cleanupBuffers();
+        run();
     }
 
     private void cleanupBuffers() {
@@ -125,5 +146,12 @@ public class Client extends Thread{
         }
     }
 
+    private void clientConnect(boolean isClientConnected){
+        this.isClientConnected = isClientConnected;
+        statusRefreshable.refresh();
+    }
 
+    public boolean isClientConnected() {
+        return isClientConnected;
+    }
 }

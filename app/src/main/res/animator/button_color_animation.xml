@@ -3,8 +3,8 @@
     android:duration="1000" >
     <propertyValuesHolder
         android:propertyName="fillColor"
-        android:valueFrom="@color/colorButtonPressed"
-        android:valueTo="@color/colorButton"
+        android:valueFrom="@color/colorMainLight"
+        android:valueTo="@color/colorMain"
         android:valueType="colorType"
         android:repeatCount="1"
         android:repeatMode="reverse"/>

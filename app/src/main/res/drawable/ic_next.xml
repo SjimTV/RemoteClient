@@ -4,7 +4,9 @@
     android:viewportWidth="200"
     android:viewportHeight="200">
   <path
-      android:name="button"
-      android:pathData="M100,100m-96,0a96,96 0,1 1,192 0a96,96 0,1 1,-192 0"
-      android:fillColor="@color/colorButton"/>
+      android:pathData="M50,25l110,75l-110,75"
+      android:strokeWidth="30"
+      android:strokeColor="@color/colorIcon"
+      android:strokeLineCap="round"
+      android:strokeLineJoin="round"/>
 </vector>
