@@ -11,9 +11,13 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.AnimatedVectorDrawable;
 import android.graphics.drawable.ColorDrawable;
+import android.media.Image;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -264,22 +268,22 @@ public class HomeActivity extends AppCompatActivity implements StatusRefreshable
     }
 
     public void volumeUpClicked(View view) {
-        animateSideButton(view);
+        //animateSideButton(view);
         Controller.adjustVolume(true);
     }
 
     public void volumeDownClicked(View view) {
-        animateSideButton(view);
+        //animateSideButton(view);
         Controller.adjustVolume(false);
     }
 
     public void bkwdClicked(View view) {
-        animateSideButton(view);
+        //animateSideButton(view);
         Controller.skipTime(false);
     }
 
     public void ffwdClicked(View view) {
-        animateSideButton(view);
+        //animateSideButton(view);
         Controller.skipTime(true);
     }
 
@@ -293,6 +297,37 @@ public class HomeActivity extends AppCompatActivity implements StatusRefreshable
         int lastWatchedEpisode = sharedPreferences.getInt("lastWatchedEpisodeNr", 1);
         Controller.playEpisode(this, lastWatchedShow, lastWatchedEpisode + 1);
     }
+
+    public void subtitleDelayClicked(View view){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View subtitleDelay = getLayoutInflater().inflate(R.layout.dialog_subtitledelay, null);
+        TextView subtitleDelayView = subtitleDelay.findViewById(R.id.subtitleDelayView);
+        TextView decreaseDelayButton = subtitleDelay.findViewById(R.id.decreaseDelayButton);
+        TextView increaseDelayButton = subtitleDelay.findViewById(R.id.increaseDelayButton);
+        builder.setView(subtitleDelay);
+
+        final AlertDialog dialogSubtitleDelay = builder.create();
+        Objects.requireNonNull(dialogSubtitleDelay.getWindow()).setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
+        dialogSubtitleDelay.show();
+
+        Response.Listener<String> subtitleDelayCallback = subtitleDelayView::setText;
+
+        decreaseDelayButton.setOnClickListener(decreaseAction -> {
+            float currentDelay = Float.parseFloat(subtitleDelayView.getText().toString());
+            currentDelay -= 0.1;
+            restApiCommunicator.setSubtitleDelay(currentDelay, subtitleDelayCallback);
+        });
+
+        increaseDelayButton.setOnClickListener(increaseAction -> {
+            float currentDelay = Float.parseFloat(subtitleDelayView.getText().toString());
+            currentDelay += 0.1;
+            restApiCommunicator.setSubtitleDelay(currentDelay, subtitleDelayCallback);
+        });
+
+        restApiCommunicator.getSubtitleDelay(subtitleDelayCallback);
+    }
+
+    // Animate
 
     public void animateMiddleButton(View view) {
         View parentLayout = (View) view.getParent();
@@ -396,12 +431,15 @@ public class HomeActivity extends AppCompatActivity implements StatusRefreshable
     }
 
     private void setupMediaView() {
+        ImageView showImageView = findViewById(R.id.showImageView);
         TextView showPlayingView = findViewById(R.id.showPlayingView);
         TextView episodePlayingView = findViewById(R.id.episodePlayingView);
         TextView totalTimeView = findViewById(R.id.totalTimeView);
 
         Show nowPlayingShow = fileManager.getShows().get(status.getShowIndex());
         Episode nowPlayingEpisode = nowPlayingShow.getEpisodes().get(status.getEpisodeNumber());
+
+        setupShowImageView(showImageView, nowPlayingShow);
 
         showPlayingView.setText(nowPlayingShow.getName());
         episodePlayingView.setText(nowPlayingEpisode.getName());
@@ -410,6 +448,17 @@ public class HomeActivity extends AppCompatActivity implements StatusRefreshable
         totalTime = nowPlayingEpisode.getDuration();
         currentTimeView.setVisibility(View.VISIBLE);
         positionSeekBar.setVisibility(View.VISIBLE);
+    }
+
+    private void setupShowImageView(ImageView showImageView, Show show){
+        String imageString = show.getShowImage();
+        if (imageString != null && !imageString.equals("NO_IMAGE_FOUND")){
+            byte[] decodedString = Base64.decode(imageString, Base64.DEFAULT);
+            Bitmap showImage = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+            showImageView.setImageBitmap(showImage);
+        } else {
+            Log.i("ImageNotFound", show.getName());
+        }
     }
 
     private void refreshConnectionState(){

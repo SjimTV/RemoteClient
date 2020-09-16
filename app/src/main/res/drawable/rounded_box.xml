@@ -15,7 +15,7 @@
         android:centerColor="@color/colorSecondDark"
         android:endColor="@color/colorMain"
         android:type="radial"
-        android:gradientRadius="400dp"
+        android:gradientRadius="600dp"
         android:angle="270"/>
 
 </shape>

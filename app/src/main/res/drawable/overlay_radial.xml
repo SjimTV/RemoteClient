@@ -14,8 +14,8 @@
             <gradient
                 android:angle="270"
                 android:endColor="@color/colorSecondDark"
-                android:gradientRadius="200dp"
-                android:startColor="#00000000"
+                android:gradientRadius="300dp"
+                android:startColor="@color/colorTransparant"
                 android:type="radial" />
 
         </shape>

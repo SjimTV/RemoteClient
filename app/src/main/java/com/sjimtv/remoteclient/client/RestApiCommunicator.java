@@ -89,6 +89,19 @@ public class RestApiCommunicator {
 
     }
 
+    public void getSubtitleDelay(Response.Listener<String> callback){
+        String url ="http://" + ip + ":" + port + "/getSubtitleDelay";
+
+        callGetRequest(url, callback);
+    }
+
+    public void setSubtitleDelay(float subtitleDelay, Response.Listener<String> callback){
+        String url ="http://" + ip + ":" + port + "/setSubtitleDelay?subtitleDelaySeconds=";
+        url += subtitleDelay;
+
+        callGetRequest(url, callback);
+    }
+
     public void subscribePositionlistener(boolean subscribe, Response.Listener<String> callback){
         String url ="http://" + ip + ":" + port + "/positionListener?subscribe=";
         if (subscribe) url += "true";

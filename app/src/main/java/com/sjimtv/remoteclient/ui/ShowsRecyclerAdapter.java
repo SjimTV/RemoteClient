@@ -36,9 +36,6 @@ public class ShowsRecyclerAdapter extends RecyclerView.Adapter<ShowsRecyclerAdap
 
     @Override
     public void onBindViewHolder(@NonNull ShowViewHolder holder, int position) {
-        TextView showNameView = holder.showNameView;
-        showNameView.setText(shows.get(position).getName());
-
         ImageView showImageView = holder.showImageView;
         String imageString = shows.get(position).getShowImage();
         if (imageString != null && !imageString.equals("NO_IMAGE_FOUND")){
@@ -57,7 +54,6 @@ public class ShowsRecyclerAdapter extends RecyclerView.Adapter<ShowsRecyclerAdap
     }
 
     public static class ShowViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        private TextView showNameView;
         private ImageView showImageView;
 
         ShowsActivity activity;
@@ -65,8 +61,6 @@ public class ShowsRecyclerAdapter extends RecyclerView.Adapter<ShowsRecyclerAdap
         public ShowViewHolder(@NonNull View itemView, Activity activity) {
             super(itemView);
             this.activity = (ShowsActivity) activity;
-
-            showNameView = itemView.findViewById(R.id.showNameView);
             showImageView = itemView.findViewById(R.id.showImageView);
 
             itemView.setOnClickListener(this);
